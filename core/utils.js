@@ -100,3 +100,69 @@ export const assert = (condition, message) => {
     throw message || 'Failed';
   }
 }
+
+export const pem2ba = (pem) => {
+  var lines = pem.split('\n');
+  var encoded = '';
+  for (let line of lines) {
+    if (line.trim().length > 0 &&
+      line.indexOf('-BEGIN CERTIFICATE-') < 0 &&
+      line.indexOf('-BEGIN PUBLIC KEY-') < 0 &&
+      line.indexOf('-END PUBLIC KEY-') < 0 &&
+      line.indexOf('-END CERTIFICATE-') < 0) {
+      encoded += line.trim();
+    }
+  }
+  return b64decode(encoded);
+}
+
+export const b64decode = (str) => {
+  let dec;
+  if (typeof (window) === 'undefined') {
+    dec = Buffer.from(str, 'base64');
+  }
+  else {
+    dec = atob(str).split('').map(function (c) {
+      return c.charCodeAt(0);
+    });
+  }
+  return new Uint8Array(dec);
+}
+
+export const sortKeys = (obj) => {
+  const numArray = Object.keys(obj).map(function (x) { return Number(x); });
+  return numArray.sort(function (a, b) { return a - b; });
+}
+
+export const bytesToBits = (ba) => {
+  assert(ba instanceof Uint8Array);
+  const bitArr = Array(ba.length * 8);
+  let idx = 0;
+  for (let i = ba.length - 1; i >= 0; i--) {
+    for (let j = 0; j < 8; j++) {
+      bitArr[idx] = (ba[i] >> j) & 0x01;
+      idx++;
+    }
+  }
+  return bitArr;
+}
+
+export const splitIntoChunks = (ba, chunkSize) => {
+  assert(ba instanceof Uint8Array);
+  assert(ba.length % chunkSize === 0);
+  const newArray = [];
+  const chunkCount = ba.length / chunkSize;
+  for (let i = 0; i < chunkCount; i++) {
+    newArray.push(ba.slice(i * chunkSize, (i + 1) * chunkSize));
+  }
+  return newArray;
+}
+
+export const ba2str = (ba) => {
+  assert(ba instanceof Uint8Array);
+  let result = '';
+  for (const b of ba) {
+    result += String.fromCharCode(b);
+  }
+  return result;
+}
